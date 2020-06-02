@@ -43,17 +43,18 @@ describe('Ranked Donors', () => {
 				body: {
 					data: {
 						donors: [
-							{ total: 7000, preferredName: 'Alex', },
-							{ total: 6000, preferredName: 'Sam', },
+							{ uuid: 'uuid1', total: 7000, preferredName: 'Alex', count: 2 },
+							{ uuid: 'uuid2', total: 6000, preferredName: 'Sam', count: 1 },
+							{ uuid: 'uuid3', total: 1500, preferredName: 'Georgia', count: 1 },
 						],
 						costumeVotes: [
-							{ rank: 1, name: 'Cowboy Hat', total: 2 },
-							{ rank: 2, name: 'Cape', total: 1 },
-							{ rank: 2, name: 'Boots', total: 1 },
+							{ id: 'cowboy-hat', rank: 1, name: 'Cowboy Hat', total: 2 },
+							{ id: 'cape', rank: 2, name: 'Cape', total: 1, photoUrl: 'https://costume.test' },
+							{ id: 'boots', rank: 2, name: 'Boots', total: 1 },
 						]
 					},
 				},
-			})
+			});
 		});
 	}
 });
