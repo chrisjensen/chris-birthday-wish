@@ -182,6 +182,7 @@ function compileCostumeVotes(donations, costumeField) {
 	let lastTotal = -1;
 	costumeVotes.forEach(costume => {
 		if (lastTotal !== costume.total) rank += 1;
+		lastTotal = costume.total;
 		costume.rank = rank;
 	});
 
