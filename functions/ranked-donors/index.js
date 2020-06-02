@@ -129,24 +129,38 @@ function compileDonors(donations) {
 	return Object.values(donors);
 }
 
+const pathify = (unsanitized) =>
+	_.trim(unsanitized, '-')
+		.replace(/\s+/g, '-')
+		// remove non compatible characters
+		.replace(/[^a-zA-Z0-9-]+/g, '')
+		// remove consecutive slashes (prevents too many permutations)
+		.replace(/[-]{2,}/g, '-')
+		// then cast to lowercase
+		.toLowerCase();
+
 function addVote(costumes, { name, id, photoUrl }) {
-	if (!id) id = _.camelCase(name);
+	if (!id) id = pathify(name);
 	if (!name) name = _.startCase(id);
 	if (!costumes[id]) {
 		costumes[id] = {
 			id,
 			name,
-			photoUrl,
 			total: 0,
 		}
+		if (photoUrl) costumes[id].photoUrl = photoUrl;
 	}
 	costumes[id].total += 1;
 }
 
 function compileCostumeVotes(donations, costumeField) {
 	const costumes = {};
-	costumeField.options.forEach(costume => costumes[costume.value] = {
-		id: costume.value, name: costume.label, photoUrl: costume.photoUrl, total: 0
+	costumeField.options.forEach(costume => {
+		const { value: id, label: name, photoUrl } = costume;
+		costumes[id] = {
+			id, name, total: 0
+		};
+		if (photoUrl) costumes[id].photoUrl = photoUrl;
 	});
 
 	donations.forEach(donation => {
