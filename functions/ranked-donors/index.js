@@ -38,7 +38,7 @@ async function getCachedDonors() {
 	const ttl = 30 * 60 * 1000;
 	let results = cache.get('donors');
 
-	if (!donors) {
+	if (!results) {
 		// Save the promise so if others come looking for
 		// the donors we don't send multiple requests
 		if (!getDonorsPromise) getDonorsPromise = getRankedDonors();
@@ -66,7 +66,7 @@ async function getRankedDonors() {
 	]);
 	const donors = compileDonors(donations);
 	const costumeVotes = compileCostumeVotes(donations, costumeField);
-	const rankedDonors = donors.sort((a, b) => a.total - b.total);
+	const rankedDonors = donors.sort((a, b) => b.total - a.total);
 	return { donors: rankedDonors, costumeVotes };
 }
 
@@ -158,7 +158,7 @@ function compileCostumeVotes(donations, costumeField) {
 	});
 
 	const costumeVotes = Object.values(costumes)
-		.sort((a, b) => a.total - b.total);
+		.sort((a, b) => b.total - a.total);
 
 	// Assign a rank to each
 	let rank = 0;
