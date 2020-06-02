@@ -74,7 +74,8 @@ async function fetchDonations() {
 	// Load the details of this user to check if they are an admin
 	const url = `${RAISELY_API}/campaigns/${CAMPAIGN_PATH}/donations?limit=150`;
 
-	const { data: donations } = await axios.get(url);
+	const response = await axios.get(url);
+	const { data: donations } = response.data;
 
 	return donations;
 }
@@ -83,9 +84,11 @@ async function fetchCostumeField() {
 	// Load the details of this user to check if they are an admin
 	const url = `${RAISELY_API}/campaigns/${CAMPAIGN_PATH}/fields?private=1`;
 
-	const { data: fields } = await axios.get(url, {
+	const response = await axios.get(url, {
 		headers: { authorization: `bearer ${RAISELY_TOKEN}` }
 	});
+
+	const { data: fields } = response.data;
 
 	const costumeField = fields.find(f => f.name === 'costumeVote');
 
