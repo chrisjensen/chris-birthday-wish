@@ -19,12 +19,21 @@ describe('Ranked Donors', () => {
 	});
 	// Should yield the same result, but without any requests being made
 	describe('Second request', () => {
-		before(() => runRequest());
+		before(async () => {
+			context = await runRequest()
+		});
 		itWasSuccessful();
 	})
 	describe('Cache bust', () => {
-		before(() => runRequest(true));
+		let nocks;
+		before(async () => {
+			nocks = nockDonations();
+			context = await runRequest(true);
+		});
 		itWasSuccessful();
+		it('re-fetched content', () => {
+			expect(nocks.isDone()).to.be.ok;
+		});
 	});
 
 	function itWasSuccessful() {
