@@ -1,0 +1,22 @@
+{
+  "name": "birthday-cloud-functions",
+  "version": "1.0.0",
+  "description": "",
+  "main": "highest-donor.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "lodash": "^4.17.15",
+    "nano-cache": "^1.1.2"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-subset": "^1.6.0",
+    "mocha": "^7.2.0",
+    "nock": "^12.0.3"
+  }
+}
