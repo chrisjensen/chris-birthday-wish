@@ -65,19 +65,19 @@ function nockDonations() {
 			authorization: `bearer ${process.env.RAISELY_TOKEN}`,
 		}
 	})
-		.get(`/campaigns/${CAMPAIGN_PATH}/fields?private=true`)
+		.get(`/campaigns/${CAMPAIGN_PATH}/fields?private=1`)
 		.reply(200, {
 			data: [{ name: 'costumeVote', options: [{ label: 'Cowboy Hat', value: 'cowboy-hat' }], uuid: 'costume-field-uuid' }],
 		});
 
 	return nock(RAISELY_API)
-		.get(`/campaigns/${CAMPAIGN_PATH}/donations`)
+		.get(`/campaigns/${CAMPAIGN_PATH}/donations?limit=150`)
 		.reply(200, {
 			data: [
-				{ user: { uid: 'uuid1' }, preferredName: 'Alex', amount: 1000, public: { costumeVote: 'cowboy-hat'} },
-				{ user: { uid: 'uuid2' }, preferredName: 'Sam', amount: 6000, public: { clothing: 'Cowboy Hat' } },
-				{ user: { uid: 'uuid1' }, preferredName: 'Alex', amount: 6000, public: { costumeVote: 'cape'} },
-				{ user: { uid: 'uuid3' }, preferredName: 'Georgia', amount: 1500, public: { costumeVote: 'boots'} },
+				{ user: { uuid: 'uuid1' }, preferredName: 'Alex', amount: 1000, public: { costumeVote: 'cowboy-hat' } },
+				{ user: { uuid: 'uuid2' }, preferredName: 'Sam', amount: 6000, public: { clothing: 'Cowboy Hat' } },
+				{ user: { uuid: 'uuid1' }, preferredName: 'Alex', amount: 6000, public: { clothing: 'Cape', pictureOfCostumeItem: 'https://costume.test'} },
+				{ user: { uuid: 'uuid3' }, preferredName: 'Georgia', amount: 1500, public: { costumeVote: 'boots'} },
 			],
 		});
 }
