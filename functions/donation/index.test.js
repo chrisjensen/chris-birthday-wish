@@ -57,7 +57,7 @@ describe('Donation Webhook', () => {
 	})
 
 	it('Updates fields', () => {
-		expect(fieldUpdates).to.deep.eq([
+		expect(fieldUpdates).to.containSubset([
 			{ options: [{ label: 'Cowboy Hat', value: 'cowboy-hat', photoUrl: 'https://cowboy-hats.test' }, { label: 'Option 1', value: 'option1' }] },
 			{ default: 'Black Crew Top' },
 			{ default: 'https://raisely-images.imgix.net/chris-birthday-wish/uploads/68972042-1-f-jpg-4cc7ed.jpg' },
