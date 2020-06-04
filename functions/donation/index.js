@@ -74,7 +74,7 @@ module.exports = async function (context, req) {
 
 				emailPromises.push(sendSecondPlaceEmails(context, { donors: secondPlace, leaderGap }));
 
-				await emailPromises;
+				await Promise.all(emailPromises);
 				context.log(`Notified winner and runners up`);
 			}
 		}
