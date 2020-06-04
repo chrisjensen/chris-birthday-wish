@@ -1,0 +1,17 @@
+{
+    "fields": {
+        "version": {
+            "type": "number",
+            "label": "Current Version of Component",
+            "value": 1
+		},
+		"profilePath": {
+            "id": "profilePath",
+            "type": "text",
+            "label": "Profile Path or UUID",
+            "value": "chris-birthday-wish",
+            "singular": null
+        }
+    },
+    "uuid": "ff657060-a6b9-11ea-89d2-9bd955724d12"
+}
