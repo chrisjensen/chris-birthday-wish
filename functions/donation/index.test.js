@@ -149,6 +149,11 @@ function nockEmailTriggers() {
 		.reply((url, body) => {
 			results.push(body);
 			return [200, { data: [] }];
+		})
+		.post('/events')
+		.reply((url, body) => {
+			results.push(body);
+			return [200, { data: [] }];
 		});
 
 	return results;
