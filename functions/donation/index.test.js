@@ -32,6 +32,7 @@ describe('Donation Webhook', () => {
 		fieldsRequest = nockRaiselyFields();
 		// Nock ranking cloud function
 		nockRankingFunction();
+		nockUserGet();
 
 		emailEvents = nockEmailTriggers();
 
@@ -106,9 +107,29 @@ function nockRaiselyFields() {
 	return result;
 }
 
+function nockUserGet() {
+	const result = {};
+	nock(RAISELY_API, {
+		reqheaders: {
+			authorization: `bearer ${process.env.RAISELY_TOKEN}`,
+		}
+	})
+		.get(`/users/user2-uuid?private=true`)
+		.reply(200, {
+			data: {
+				uuid: 'user2-uuid',
+				preferredName: 'Andy',
+				fullName: 'Andy Man',
+				email: 'andy@bday.test',
+			},
+		})
+
+	return result;
+}
+
 function nockRankingFunction() {
-	return nock(process.env.RANKING_URL)
-		.get('?clearCache=1')
+	return nock('https://azure.test/')
+		.get('/rankDonors?clearCache=1')
 		.reply(200, { data: { donors }})
 }
 
