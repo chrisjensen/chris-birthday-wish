@@ -59,8 +59,8 @@ describe('Donation Webhook', () => {
 	it('Updates fields', () => {
 		expect(fieldUpdates).to.containSubset([
 			{ options: [{ label: 'Cowboy Hat', value: 'cowboy-hat', photoUrl: 'https://cowboy-hats.test' }, { label: 'Option 1', value: 'option1' }] },
-			{ default: 'Black Crew Top' },
-			{ default: 'https://raisely-images.imgix.net/chris-birthday-wish/uploads/68972042-1-f-jpg-4cc7ed.jpg' },
+			{ default: 'The shiniest item found in an op-shop' },
+			{ default: 'https://upload.wikimedia.org/wikipedia/commons/6/6a/Sparkle.jpeg' },
 		]);
 	});
 
@@ -103,7 +103,7 @@ function nockRaiselyFields() {
 			data: [
 				{ user: { uuid: 'uuid1' }, preferredName: 'Alex', amount: 1000, public: { costumeVote: 'cowboy-hat' } },
 				{ user: { uuid: 'uuid2' }, preferredName: 'Sam', amount: 6000, public: { clothing: 'Cowboy Hat' } },
-				{ user: { uuid: 'uuid1' }, preferredName: 'Alex', amount: 6000, public: { clothing: 'Cape', pictureOfCostumeItem: 'https://costume.test'} },
+				{ user: { uuid: 'uuid1' }, preferredName: 'Alex', amount: 6000, public: { clothing: 'Black Crew Top', pictureOfCostumeItem: 'https://costume.test'} },
 				{ user: { uuid: 'uuid3' }, preferredName: 'Georgia', amount: 1500, public: { costumeVote: 'boots'} },
 			],
 		});
