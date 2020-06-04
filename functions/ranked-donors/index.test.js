@@ -3,6 +3,7 @@ process.env.RAISELY_TOKEN = 'raisely-token';
 const { expect } = require('chai');
 const nock = require('nock');
 const azureFunction = require('./index');
+const cache = require('nano-cache');
 
 const RAISELY_API = 'https://api.raisely.com/v3';
 const CAMPAIGN_PATH = 'chris-birthday-wish';
@@ -13,6 +14,7 @@ describe('Ranked Donors', () => {
 	describe('Initial request', () => {
 		before(async () => {
 			nockDonations();
+			cache.clear();
 			context = await runRequest();
 		});
 		itWasSuccessful();
