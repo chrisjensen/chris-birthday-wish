@@ -5,7 +5,11 @@ process.env.RANKING_URL = 'https://azure.test/rankDonors';
 
 const azureFunction = require('./index');
 const nock = require('nock');
-const { expect } = require('chai');
+const chai = require('chai');
+const chaiSubset = require('chai-subset');
+
+chai.use(chaiSubset);
+const { expect } = chai;
 
 const RAISELY_API = 'https://api.raisely.com/v3'
 const CAMPAIGN_PATH = 'chris-birthday-wish';
