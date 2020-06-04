@@ -56,19 +56,22 @@
 					<div className="donation-profile__item">
 						<div className="donation-profile__body">
 							<h3>{profile.name}</h3>
-							<p>{profile.description}</p>
+							<h4>What they do</h4>
+							<p dangerouslySetInnerHTML={{ __html: _.get(profile, 'public.aboutOrg', '') }} />
+							<h4>Why I chose this charity</h4>
+							<p dangerouslySetInnerHTML={{ __html: _.get(profile, 'description', '') }}></p>
 						</div>
+						<ProgressBar
+							profile={profile}
+							statPosition="middle"
+							showTotal={false}
+							showGoal={false}
+							style="rounded"
+						/>
 						<div className="donation-profile__button-wrapper">
 							<Button onClick={this.donate} theme="secondary">Donate</Button>
 						</div>
 					</div>
-					<ProgressBar
-						profile={profile}
-						statPosition="middle"
-						showTotal={false}
-						showGoal={false}
-						style="rounded"
-					/>
 				</div>
 			);
 		}
