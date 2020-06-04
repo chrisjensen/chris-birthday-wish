@@ -43,7 +43,7 @@ module.exports = async function (context, req) {
 	// for donating $60 rather than AUD 60 or SGD 58
 	// Amounts are in cents
 	if (donation.amount >= 6000) {
-		promises.push(addClothingItem(donation));
+		promises.push(addClothingItem(context, donation));
 	}
 
 	try {
