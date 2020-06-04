@@ -129,9 +129,10 @@ async function sendSecondPlaceEmails(context, { donors, leaderGap }) {
 	// The donor information is from a public facing function so it doesn't include emails
 	// To send them a message, we're going to need to first fetch their full record containing emails
 	const promises = donors.map(async (donor) => {
-		const user = await axios(`${RAISELY_API}/users/${donor.uuid}`, {
+		const response = await axios(`${RAISELY_API}/users/${donor.uuid}?private=true`, {
 			headers: { authorization: `bearer ${RAISELY_TOKEN}`},
 		});
+		const { data: user } = response.data;
 		return sendEmail(context, {
 			donor: {
 				...donor,
@@ -152,9 +153,9 @@ async function sendSecondPlaceEmails(context, { donors, leaderGap }) {
  * @param {string} opts.messageType
  */
 async function sendEmail(context, { donor, leaderGap, messageType }) {
-	const customEvent = axios('https://communications.raisely.com/v1/events', {
+	const customEvent = await axios('https://communications.raisely.com/v1/events', {
 		headers: {
-			authorization: { bearer: `raisely:${RAISELY_TOKEN}` },
+			authorization: `bearer raisely:${RAISELY_TOKEN}`,
 		},
 		method: 'POST',
 		data: {
@@ -174,7 +175,7 @@ async function sendEmail(context, { donor, leaderGap, messageType }) {
 			},
 		},
 	});
-	context.log(customEvent);
+	context.log(customEvent.data);
 	return customEvent;
 }
 
@@ -196,12 +197,15 @@ async function addClothingItem(context, donation) {
 	const newOption = { label, value, photoUrl };
 
 	// Get existing field options
-	const fields = await axios(`${RAISELY_API}/campaigns/${CAMPAIGN_PATH}/fields?private=true`);
+	const response = await axios(`${RAISELY_API}/campaigns/${CAMPAIGN_PATH}/fields?private=true`, {
+		headers: { authorization: `bearer ${RAISELY_TOKEN}` },
+	});
+	const fields = response.data.data;
 	const costumeField = fields.find(f => f.name === 'costumeVote');
 
 	if (!costumeField.options.find(option => option.value === newOption.value)) {
 		context.log('Adding new costume option', newOption);
-		costumeField.options.push(newOption);
+		// Shuffle the options so as to avoid bias to the top most
 		const newOptions = _.shuffle([...costumeField.options, newOption]);
 		await axios(`${RAISELY_API}/fields/${costumeField.uuid}`, {
 			method: 'PATCH',
