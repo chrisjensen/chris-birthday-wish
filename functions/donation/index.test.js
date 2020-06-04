@@ -161,6 +161,7 @@ function nockEmailTriggers() {
 
 async function runRequest() {
 	const context = { log: console.log };
+	context.log.error = console.error;
 
 	const req = {
 		body: {
@@ -172,4 +173,6 @@ async function runRequest() {
 	};
 
 	await azureFunction(context, req);
+
+	return context;
 }
