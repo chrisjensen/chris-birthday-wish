@@ -29,13 +29,14 @@ const donation = {
 }
 
 describe('Donation Webhook', () => {
-	let fieldsRequest;
+	let fieldUpdates;
 	let emailEvents;
 	let context;
 
 	before(async () => {
+		nock.cleanAll();
 		// Nock raisely field update
-		fieldsRequest = nockRaiselyFields();
+		fieldUpdates = nockRaiselyFields();
 		// Nock ranking cloud function
 		nockRankingFunction();
 		nockUserGet();
@@ -56,9 +57,11 @@ describe('Donation Webhook', () => {
 	})
 
 	it('Updates fields', () => {
-		expect(fieldsRequest.body).to.containSubset({
-			data: { options: [{ label: 'Option 1', value: 'option1' }, { label: 'Cowboy Hat', value: 'cowboy-hat' }] }
-		});
+		expect(fieldUpdates).to.deep.eq([
+			{ options: [{ label: 'Cowboy Hat', value: 'cowboy-hat', photoUrl: 'https://cowboy-hats.test' }, { label: 'Option 1', value: 'option1' }] },
+			{ default: 'Black Crew Top' },
+			{ default: 'https://raisely-images.imgix.net/chris-birthday-wish/uploads/68972042-1-f-jpg-4cc7ed.jpg' },
+		]);
 	});
 
 	it('Triggers leader email', () => {
@@ -93,7 +96,18 @@ describe('Donation Webhook', () => {
 });
 
 function nockRaiselyFields() {
-	const result = {};
+	const result = [];
+	nock(RAISELY_API)
+		.get(`/campaigns/${CAMPAIGN_PATH}/donations?limit=150`)
+		.reply(200, {
+			data: [
+				{ user: { uuid: 'uuid1' }, preferredName: 'Alex', amount: 1000, public: { costumeVote: 'cowboy-hat' } },
+				{ user: { uuid: 'uuid2' }, preferredName: 'Sam', amount: 6000, public: { clothing: 'Cowboy Hat' } },
+				{ user: { uuid: 'uuid1' }, preferredName: 'Alex', amount: 6000, public: { clothing: 'Cape', pictureOfCostumeItem: 'https://costume.test'} },
+				{ user: { uuid: 'uuid3' }, preferredName: 'Georgia', amount: 1500, public: { costumeVote: 'boots'} },
+			],
+		});
+
 	nock(RAISELY_API, {
 		reqheaders: {
 			authorization: `bearer ${process.env.RAISELY_TOKEN}`,
@@ -101,12 +115,17 @@ function nockRaiselyFields() {
 	})
 		.get(`/campaigns/${CAMPAIGN_PATH}/fields?private=true`)
 		.reply(200, {
-			data: [{ name: 'costumeVote', options: [{ label: 'Option 1', value: 'option1' }], uuid: 'costume-field-uuid' }],
+			data: [
+				{ name: 'costumeVote', options: [{ label: 'Option 1', value: 'option1' }], uuid: 'costume-field-uuid' },
+				{ name: 'clothing', uuid: 'costume-description-field-uuid' },
+				{ name: 'pictureOfCostumeItem', uuid: 'picture-of-costume-uuid' },
+			],
 		})
 
-		.patch(`/fields/costume-field-uuid`)
+		.persist()
+		.patch(/\/fields\/.*/)
 		.reply((url, body) => {
-			result.body = body;
+			result.push(body.data);
 			return [200, { data: [] }];
 		});
 
@@ -147,11 +166,7 @@ function nockEmailTriggers() {
 			authorization: `bearer raisely:${process.env.RAISELY_TOKEN}`,
 		}
 	})
-		.post('/events')
-		.reply((url, body) => {
-			results.push(body);
-			return [200, { data: [] }];
-		})
+		.persist()
 		.post('/events')
 		.reply((url, body) => {
 			results.push(body);

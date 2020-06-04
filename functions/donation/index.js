@@ -179,6 +179,57 @@ async function sendEmail(context, { donor, leaderGap, messageType }) {
 	return customEvent;
 }
 
+/**
+ * To prevent donors giving more than $60 from getting stuck
+ * pre-populate the clothing with a suggestion so they
+ * can just click through if they want to
+ * This function carries a list of suggestions and
+ * updates the fields to contain the first that hasn't been used
+ * @param {object[]} fields
+ */
+async function updateClothingSuggestion(fields) {
+	// Get donations
+	const response = await axios.get(`${RAISELY_API}/campaigns/${CAMPAIGN_PATH}/donations?limit=150`);
+	const donations = response.data.data;
+
+	const clothingPrompts = [
+		{ description: 'Black Crew Top', photoUrl: 'https://raisely-images.imgix.net/chris-birthday-wish/uploads/68972042-1-f-jpg-4cc7ed.jpg' },
+		{ description: 'The shiniest item found in an op-shop', photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/6a/Sparkle.jpeg' },
+		{ description: 'A wig from an op shop', photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Wig_MET_4614.jpg/1920px-Wig_MET_4614.jpg' },
+		{ description: 'A home made mask', photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e7/Comedy_and_tragedy_masks_without_background.svg' },
+		{ description: 'Dishwashing gloves', photoUrl: 'https://commons.wikimedia.org/w/index.php?sort=relevance&search=cleaning++gloves&title=Special:Search&profile=advanced&fulltext=1&advancedSearch-current=%7B%7D&ns0=1&ns6=1&ns12=1&ns14=1&ns100=1&ns106=1#/media/File:Polypropylene_Clean_Room_Wipe_and_Blue_Nitrile_Glove_-_2.jpg' },
+		{ description: 'A Bad Tie', photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/55/Hermes_ties.jpg' },
+	];
+
+	const existingClothing = donations
+		.map(donation => _.get(donation, 'public.clothing'))
+		.filter(r => r);
+	const allPrompts = clothingPrompts
+		.map(p => p.description);
+
+	const remainingDescriptions = _.difference(allPrompts, existingClothing);
+	const remainingPrompts = clothingPrompts.filter(prompt => remainingDescriptions.find(d => d === prompt.description));
+
+	const [newPrompt] = remainingPrompts;
+
+	if (newPrompt) {
+		const costumeDescription = fields.find(f => f.name === 'clothing');
+		const costumePictureField = fields.find(f => f.name === 'pictureOfCostumeItem');
+		await Promise.all([
+			updateField(costumeDescription.uuid, { default: newPrompt.description }),
+			updateField(costumePictureField.uuid, { default: newPrompt.photoUrl }),
+		]);
+	}
+}
+
+async function updateField(uuid, data) {
+	return axios(`${RAISELY_API}/fields/${uuid}`, {
+		method: 'PATCH',
+		headers: { authorization: `bearer ${RAISELY_TOKEN}` },
+		data: { data },
+	});
+}
+
 const pathify = (unsanitized) =>
 	_.trim(unsanitized, '-')
 		.replace(/\s+/g, '-')
@@ -212,6 +263,9 @@ async function addClothingItem(context, donation) {
 			headers: { authorization: `bearer ${RAISELY_TOKEN}` },
 			data: { data: { options: newOptions } },
 		});
+
+		// Update the costume options from this description
+		await updateClothingSuggestion(fields);
 
 		return true;
 	}
