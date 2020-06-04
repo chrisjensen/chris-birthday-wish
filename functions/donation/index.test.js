@@ -15,8 +15,8 @@ const RAISELY_API = 'https://api.raisely.com/v3'
 const CAMPAIGN_PATH = 'chris-birthday-wish';
 
 const donors = [
-	{ total: 7000, preferredName: 'Mel' },
-	{ total: 4000, preferredName: 'Andy' },
+	{ total: 7000, preferredName: 'Mel', uuid: 'user1-uuid' },
+	{ total: 4000, preferredName: 'Andy', uuid: 'user2-uuid' },
 ];
 
 const donation = {
@@ -24,6 +24,8 @@ const donation = {
 	amount: 6000,
 	user: { uuid: 'user1-uuid' },
 	public: { clothing: 'Cowboy Hat', pictureOfCostumeItem: 'https://cowboy-hats.test' },
+	email: 'mel@bday.test',
+	preferredName: 'Mel',
 }
 
 describe('Donation Webhook', () => {
