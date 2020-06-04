@@ -180,6 +180,7 @@ async function sendEmail(context, { donor, leaderGap, messageType }) {
 
 const pathify = (unsanitized) =>
 	_.trim(unsanitized, '-')
+		.replace(/\s+/g, '-')
 		// remove non compatible characters
 		.replace(/[^a-zA-Z0-9-]+/g, '')
 		// remove consecutive slashes (prevents too many permutations)
@@ -190,7 +191,7 @@ const pathify = (unsanitized) =>
 async function addClothingItem(context, donation) {
 	const photoUrl = _.get(donation, 'public.pictureOfCostumeItem');
 	const label = _.get(donation, 'public.clothing');
-	const value = pathify(name);
+	const value = pathify(label);
 
 	const newOption = { label, value, photoUrl };
 
