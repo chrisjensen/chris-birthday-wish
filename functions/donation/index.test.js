@@ -55,8 +55,8 @@ describe('Donation Webhook', () => {
 
 	it('Updates fields', () => {
 		expect(fieldsRequest.body).to.containSubset({
-			options: [{ label: 'Option 1', value: 'option1' }, { label: 'Cowboy Hat', value: 'cowboy-hat' }],
-		})
+			data: { options: [{ label: 'Option 1', value: 'option1' }, { label: 'Cowboy Hat', value: 'cowboy-hat' }] }
+		});
 	});
 
 	it('Triggers leader email', () => {
