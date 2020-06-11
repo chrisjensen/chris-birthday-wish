@@ -8,8 +8,9 @@
 	return class DonationProfile extends React.Component {
 		// Until we've loaded, show the campaign profile
 		state = {
-			profile: get(this.props, 'global.campaign.profile'),
-			profilePath: get(this.props, 'global.campaign.profile.path')
+			profile: get(this.props, "global.campaign.profile"),
+			profilePath: get(this.props, "global.campaign.profile.path"),
+			distributedGeneral: 0,
 		};
 
 		componentDidMount() {
@@ -26,18 +27,34 @@
 			this.setState({ profilePath });
 
 			try {
-				const profile = await getData(api.profiles.get({ id: profilePath }));
-				this.setState({ profile });
+				const profiles = await getData(api.profiles.getAll());
+				const profile = profiles.find(
+					profile =>
+						profile.path === profilePath ||
+						profile.uuid === profilePath
+				);
+				const totalSpecific = profiles.reduce(
+					(total, profile) => total + profile.total,
+					0
+				);
+				const totalGeneral =
+					get(this.props, "global.campaign.total", 0) - totalSpecific;
+				const distributedGeneral = totalGeneral / profiles.length;
+
+				console.log(
+					`Calculating distributed total (${totalGeneral} - ${totalSpecific}) / ${profiles.length}`
+				);
+				this.setState({ profile, distributedGeneral, distributedBonus });
 			} catch (e) {
 				console.error(e);
 			}
-		}
+		};
 
 		donate = () => this.setState({ showDonate: true });
 
 		render() {
 			const { props } = this;
-			const { profile, showDonate } = this.state;
+			const { profile, showDonate, distributedGeneral } = this.state;
 
 			if (showDonate) {
 				return (
@@ -63,10 +80,16 @@
 						</div>
 						<ProgressBar
 							profile={profile}
+							displaySource="custom"
 							statPosition="middle"
-							showTotal={false}
+							total={Math.round(
+								(profile.total + distributedGeneral) / 100
+							)}
+							goal={Math.round(profile.goal / 100)}
+							showTotal={true}
 							showGoal={false}
 							style="rounded"
+							unit="raised"
 						/>
 						<div className="donation-profile__button-wrapper">
 							<Button onClick={this.donate} theme="secondary">Donate</Button>
@@ -75,5 +98,5 @@
 				</div>
 			);
 		}
-	}
-}
+	};
+};
