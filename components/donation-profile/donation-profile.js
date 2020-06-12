@@ -5,6 +5,16 @@
 	const { getData } = api;
 	const { get } = RaiselyComponents.Common;
 
+	// Because a 4th charity was added on 11th June
+	// splitting the fundraising total becomes more complicated
+	// Donations prior to then were to 3 charities, donations after were to 4 charities
+	// so need to be divided accordingly
+	// This is the amount that was raised for the original 3 charities
+	const originalGeneralTotal = 58107;
+
+	// I'll refer to the first 3 charities as "original"
+	// and the newest charity as "bonus"
+
 	return class DonationProfile extends React.Component {
 		// Until we've loaded, show the campaign profile
 		state = {
@@ -38,19 +48,37 @@
 					0
 				);
 				const totalGeneral =
-					get(this.props, "global.campaign.total", 0) - totalSpecific;
-				const distributedGeneral = totalGeneral / profiles.length;
+					get(this.props, "global.campaign.total", 0) - totalSpecific - originalGeneralTotal;
+
+				let distributedGeneral = totalGeneral / profiles.length;
+				// If this isn't the newly added profile, add the distributed portion of the original total
+				if (profile.path !== 'effective-altruism') distributedGeneral += originalGeneralTotal / 3
 
 				console.log(
 					`Calculating distributed total (${totalGeneral} - ${totalSpecific}) / ${profiles.length}`
 				);
-				this.setState({ profile, distributedGeneral, distributedBonus });
+				this.setState({ profile, distributedGeneral });
 			} catch (e) {
 				console.error(e);
 			}
 		};
 
 		donate = () => this.setState({ showDonate: true });
+
+		renderSection = (profile, heading, key) => (
+			<React.Fragment>
+				<h4>{heading}</h4>
+				<p
+					dangerouslySetInnerHTML={{
+						__html: _.get(
+							profile,
+							key,
+							""
+						)
+					}}
+				></p>
+			</React.Fragment>
+		);
 
 		render() {
 			const { props } = this;
@@ -68,16 +96,24 @@
 					</div>
 				);
 			}
+
 			return (
 				<div className="donation-profile__wrapper spotlight-donate">
 					<div className="donation-profile__item">
 						<div className="donation-profile__body">
 							<h3>{profile.name}</h3>
-							<h4>What they do</h4>
-							<p dangerouslySetInnerHTML={{ __html: _.get(profile, 'public.aboutOrg', '') }} />
-							<h4>Why I chose this charity</h4>
-							<p dangerouslySetInnerHTML={{ __html: _.get(profile, 'description', '') }}></p>
-						</div>
+							{profile.path === "effective-altruism" ? (
+								<React.Fragment>
+									{this.renderSection(profile, 'Why I chose this charity', 'description')}
+									{this.renderSection(profile, 'What they do', 'public.aboutOrg')}
+								</React.Fragment>
+							) : (
+								<React.Fragment>
+									{this.renderSection(profile, 'What they do', 'public.aboutOrg')}
+									{this.renderSection(profile, 'Why I chose this charity', 'description')}
+								</React.Fragment>
+							)}
+							</div>
 						<ProgressBar
 							profile={profile}
 							displaySource="custom"
