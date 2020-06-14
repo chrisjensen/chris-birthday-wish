@@ -8,6 +8,13 @@ const RAISELY_TOKEN = process.env.RAISELY_TOKEN;
 
 let getDonorsPromise;
 
+/**
+ * Cloud function that compiles and caches
+ * * Donor rankings by total donated
+ * * Votes for clothing items
+ * @param {*} context
+ * @param {*} req
+ */
 module.exports = async function (context, req) {
 	// Make it easy to clear the cache by passing ?clearCache=1
 	if (req.query.clearCache) {
@@ -32,6 +39,12 @@ module.exports = async function (context, req) {
 	}
 };
 
+/**
+ * Calls the function to calculate and looks up it's result
+ * Ensures that concurrent requests simply pull from the cache
+ * or wait on a promise that is already in progress
+ * @returns {object} The value for the function to return
+ */
 async function getCachedDonors() {
 	// Cache for 30 minutes
 	// (new donations will trigger a webhook that clears the the cache)
@@ -59,6 +72,10 @@ async function getCachedDonors() {
 	return results;
 }
 
+/**
+ * Load donors ranked by total donations and also calculate costume votes
+ * @returns {object} { donors, costumeVotes }
+ */
 async function getRankedDonors() {
 	const [donations, costumeField] = await Promise.all([
 		fetchDonations(),
@@ -70,6 +87,10 @@ async function getRankedDonors() {
 	return { donors: rankedDonors, costumeVotes };
 }
 
+/**
+ * Load all donations from Raisely
+ * @returns {object[]} Donations
+ */
 async function fetchDonations() {
 	// Load the details of this user to check if they are an admin
 	const url = `${RAISELY_API}/campaigns/${CAMPAIGN_PATH}/donations?limit=150`;
@@ -80,6 +101,10 @@ async function fetchDonations() {
 	return donations;
 }
 
+/**
+ * Load the costume field from raisely
+ * @returns {object} Costume field
+ */
 async function fetchCostumeField() {
 	// Load the details of this user to check if they are an admin
 	const url = `${RAISELY_API}/campaigns/${CAMPAIGN_PATH}/fields?private=1`;
@@ -95,6 +120,12 @@ async function fetchCostumeField() {
 	return costumeField;
 }
 
+/**
+ * Takes the donations loaded from Raisely and compiles the
+ * amount given by each donor in the case of multiple donations
+ * @param {*} donations
+ * @returns {object[]} An array of donors { preferredName, total, count, uuid }
+ */
 function compileDonors(donations) {
 	// Donors tallied by donor.user.uuid
 	const donors = {};
@@ -139,6 +170,15 @@ const pathify = (unsanitized) =>
 		// then cast to lowercase
 		.toLowerCase();
 
+/**
+ * Add a vote for a costume item. If it's the first, the costume item will
+ * be added to the map
+ * @param {object} costumes Maps from costume item id to an object containing votes and details
+ * @param {object} opts
+ * @param {string} opts.name
+ * @param {string} opts.id
+ * @param {string} opts.photoUrl
+ */
 function addVote(costumes, { name, id, photoUrl }) {
 	if (!id) id = pathify(name);
 	if (!name) name = _.startCase(id);
@@ -153,8 +193,15 @@ function addVote(costumes, { name, id, photoUrl }) {
 	costumes[id].total += 1;
 }
 
+/**
+ * Compile the votes for costumes
+ * @param {object[]} donations All the donations to the campaign
+ * @param {object} costumeField Used to initialise the votes list
+ * @returns {object[]} Array of costumes with total field for the tallied votes
+ */
 function compileCostumeVotes(donations, costumeField) {
 	const costumes = {};
+	// Initialise the costumes map from the values in the costume select field
 	costumeField.options.forEach(costume => {
 		const { value: id, label: name, photoUrl } = costume;
 		costumes[id] = {
@@ -163,6 +210,7 @@ function compileCostumeVotes(donations, costumeField) {
 		if (photoUrl) costumes[id].photoUrl = photoUrl;
 	});
 
+	// Compile votes from each donation (either what they chose, or what they added)
 	donations.forEach(donation => {
 		const id = _.get(donation, 'public.costumeVote');
 		if (id) addVote(costumes, { id });
@@ -174,10 +222,12 @@ function compileCostumeVotes(donations, costumeField) {
 		}
 	});
 
+	// Sort the costumes according to highest vote
 	const costumeVotes = Object.values(costumes)
 		.sort((a, b) => b.total - a.total);
 
 	// Assign a rank to each
+	// Does a dense ranking (eg tied second means 1, 2, 2, 3)
 	let rank = 0;
 	let lastTotal = -1;
 	costumeVotes.forEach(costume => {

@@ -9,6 +9,15 @@ const CAMPAIGN_PATH = 'chris-birthday-wish';
 const CAMPAIGN_UUID = '7c9a93c0-a314-11ea-85e8-014a76ec5878';
 const RAISELY_API = 'https://api.raisely.com/v3'
 
+/**
+ * Cloud function to send email and push notification to a donor
+ * when they become the highest donor or when they fall from
+ * highest donor
+ *
+ * @param {*} context
+ * @param {*} req
+ */
+
 module.exports = async function (context, req) {
 	// Verify that the webhook is actually from raisely using the shared secret
 	if (!authenticate(req)) {
@@ -111,6 +120,13 @@ function authenticate(req) {
 	return (secret && secret === WEBHOOK_SECRET);
 }
 
+/**
+ * Send email to the person in first place
+ * @param {*} context
+ * @param {object} opts
+ * @param {object} opts.donation the raisely donation object for the donation to send in the payload
+ * @param {int} opts.leaderGap the difference in donation amount between first and second place
+ */
 async function sendFirstPlaceEmail(context, { donation, leaderGap }) {
 	return sendEmail(context, {
 		donor: donation,
@@ -120,9 +136,9 @@ async function sendFirstPlaceEmail(context, { donation, leaderGap }) {
 }
 
 /**
- *
+ * Send emails to all those that have moved from first to second place
  * @param {*} context Request context
- * @param {object[]} opts.donors
+ * @param {object[]} opts.donors Array of donors
  * @param {integer} opts.leaderGap The gap between first and second place totals
  */
 async function sendSecondPlaceEmails(context, { donors, leaderGap }) {
@@ -130,7 +146,7 @@ async function sendSecondPlaceEmails(context, { donors, leaderGap }) {
 	// To send them a message, we're going to need to first fetch their full record containing emails
 	const promises = donors.map(async (donor) => {
 		const response = await axios(`${RAISELY_API}/users/${donor.uuid}?private=true`, {
-			headers: { authorization: `bearer ${RAISELY_TOKEN}`},
+			headers: { authorization: `bearer ${RAISELY_TOKEN}` },
 		});
 		const { data: user } = response.data;
 		return sendEmail(context, {
@@ -149,8 +165,8 @@ async function sendSecondPlaceEmails(context, { donors, leaderGap }) {
  *
  * @param {*} context Context of cloud function request
  * @param {object} opts.donor
- * @param {integer} opts.leaderGap
- * @param {string} opts.messageType
+ * @param {integer} opts.leaderGap Amount difference between first and second place (in cents)
+ * @param {string} opts.messageType Message type, used by Raisely message settings to determine which message to send
  */
 async function sendEmail(context, { donor, leaderGap, messageType }) {
 	const customEvent = await axios('https://communications.raisely.com/v1/events', {
@@ -180,7 +196,7 @@ async function sendEmail(context, { donor, leaderGap, messageType }) {
 }
 
 /**
- * To prevent donors giving more than $60 from getting stuck
+ * To prevent donors who are giving more than $60 from getting stuck
  * pre-populate the clothing with a suggestion so they
  * can just click through if they want to
  * This function carries a list of suggestions and
@@ -201,15 +217,19 @@ async function updateClothingSuggestion(fields) {
 		{ description: 'A Bad Tie', photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/55/Hermes_ties.jpg' },
 	];
 
+	// Find all clothing suggestions that have already been used
 	const existingClothing = donations
 		.map(donation => _.get(donation, 'public.clothing'))
 		.filter(r => r);
 	const allPrompts = clothingPrompts
 		.map(p => p.description);
 
+	// Find all clothing descriptions that haven't been used
 	const remainingDescriptions = _.difference(allPrompts, existingClothing);
+	// Filter the clothing prompts list by remaining descriptions
 	const remainingPrompts = clothingPrompts.filter(prompt => remainingDescriptions.find(d => d === prompt.description));
 
+	// Choose the first prompt that hasn't been used
 	const [newPrompt] = remainingPrompts;
 
 	if (newPrompt) {
@@ -222,6 +242,11 @@ async function updateClothingSuggestion(fields) {
 	}
 }
 
+/**
+ * Update a custom field in Raisely
+ * @param {string} uuid of the field
+ * @param {object} data configuration for the field
+ */
 async function updateField(uuid, data) {
 	return axios(`${RAISELY_API}/fields/${uuid}`, {
 		method: 'PATCH',
@@ -230,6 +255,11 @@ async function updateField(uuid, data) {
 	});
 }
 
+/**
+ * Turn a string into a path, for use in creating a value for each clothing
+ * item when selected
+ * @param {string} unsanitized the description of the clothing item
+ */
 const pathify = (unsanitized) =>
 	_.trim(unsanitized, '-')
 		.replace(/\s+/g, '-')
@@ -240,6 +270,11 @@ const pathify = (unsanitized) =>
 		// then cast to lowercase
 		.toLowerCase();
 
+/**
+ * Add a clothing item from a $60+ donation to the list of options
+ * @param {*} context
+ * @param {object} donation The donation we've just received
+ */
 async function addClothingItem(context, donation) {
 	const photoUrl = _.get(donation, 'public.pictureOfCostumeItem');
 	const label = _.get(donation, 'public.clothing');
