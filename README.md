@@ -11,10 +11,10 @@ The components were to support the following functionality:
 3. Donations of $60 or more get to add an item of clothing to the voting
 
 **Note:** If you visit the site you'll notice a lot of this functionality was not used. Just before I was to launch the fundraiser
-the killing of George Floyd and all that followed happened. A campaign around a white guy dancing felt like it would be in poor taste
-so I scaled this back down to a simple fundraiser. 
+the George Floyd was killed and #BLM became front and center in the news. A campaign around a white guy dancing felt like it would be in poor taste so I scaled this back down to a simple fundraiser. 
 
 In the end, just two components were used:
 
 1. [donate-expand](components/donate-expand/) - Doantion button that expands to a donation form to keep mobile layout uncluttered
-2. [donation-profile](components/donation-profile) - Displays profile for each selected charity and calculates amount from general donations to display on the progress bar for each charity
+2. [donation-profile](components/donation-profile/) - Displays profile for each selected charity and calculates a custom progress bar summing the total amount donated specifically to that charity and distributing general donations among charities
+
