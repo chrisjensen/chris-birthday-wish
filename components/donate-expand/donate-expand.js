@@ -28,8 +28,6 @@
 			load();
 		});
 
-		donate = () => setShowDonate(true);
-
 		return (
 			<div className="donation-profile__wrapper spotlight-donate">
 				{showDonate ? (
@@ -41,7 +39,7 @@
 					/>
 				) : (
 						<div className="donation-profile__button-wrapper">
-							<Button onClick={this.donate} theme="secondary">Donate</Button>
+							<Button onClick={() => setShowDonate(true)} theme="secondary">Donate</Button>
 						</div>
 					)}
 			</div>
