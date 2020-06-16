@@ -5,59 +5,46 @@
 	const { getData } = api;
 	const { get } = RaiselyComponents.Common;
 
-	return class DonationProfile extends React.Component {
+	return function DonationProfile(props) {
 		// Until we've loaded, show the campaign profile
-		state = {
-			profile: get(this.props, 'global.campaign.profile'),
-			profilePath: get(this.props, 'global.campaign.profile.path')
-		};
+		const [profile, setProfile] = useState(get(props, 'global.campaign.profile'));
+		const [profilePath, setProfilePath] = useState(get(props, 'global.campaign.profile.path'));
+		const [showDonate, setShowDonate] = useState(false);
 
-		componentDidMount() {
-			this.load();
-		}
-		componentDidUpdate() {
-			this.load();
-		}
+		useEffect(() => {
+			const load = async () => {
+				const { profilePath: newProfilePath } = props.getValues();
+				// Nothing to do
+				if (newProfilePath === profilePath) return;
+				setProfilePath(profilePath);
 
-		load = async () => {
-			const { profilePath } = this.props.getValues();
-			// Nothing to do
-			if (profilePath === this.state.profilePath) return;
-			this.setState({ profilePath });
-
-			try {
-				const profile = await getData(api.profiles.get({ id: profilePath }));
-				this.setState({ profile });
-			} catch (e) {
-				console.error(e);
+				try {
+					const newProfile = await getData(api.profiles.get({ id: newProfilePath }));
+					setProfile(newProfile)
+				} catch (e) {
+					console.error(e);
+				}
 			}
-		}
+			load();
+		});
 
-		donate = () => this.setState({ showDonate: true });
+		donate = () => setShowDonate(true);
 
-		render() {
-			const { props } = this;
-			const { profile, showDonate } = this.state;
-
-			if (showDonate) {
-				return (
-					<div className="donation-profile__wrapper">
-						<DonationForm
-							profileUuid={profile.uuid}
-							title={`Donate to ${profile.name}`}
-							integrations={props.integrations}
-							global={props.global}
-						/>
-					</div>
-				);
-			}
-			return (
-				<div className="donation-profile__wrapper spotlight-donate">
-					<div className="donation-profile__button-wrapper">
-						<Button onClick={this.donate} theme="secondary">Donate</Button>
-					</div>
-				</div>
-			);
-		}
+		return (
+			<div className="donation-profile__wrapper spotlight-donate">
+				{showDonate ? (
+					<DonationForm
+						profileUuid={profile.uuid}
+						title={`Donate to ${profile.name}`}
+						integrations={props.integrations}
+						global={props.global}
+					/>
+				) : (
+						<div className="donation-profile__button-wrapper">
+							<Button onClick={this.donate} theme="secondary">Donate</Button>
+						</div>
+					)}
+			</div>
+		);
 	}
 }
