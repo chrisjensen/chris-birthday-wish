@@ -112,20 +112,20 @@
 									{this.renderSection(profile, 'What they do', 'public.aboutOrg')}
 								</React.Fragment>
 							) : (
-								<React.Fragment>
-									{this.renderSection(profile, 'What they do', 'public.aboutOrg')}
-									{this.renderSection(profile, 'Why I chose this charity', 'description')}
-								</React.Fragment>
-							)}
-							</div>
+									<React.Fragment>
+										{this.renderSection(profile, 'What they do', 'public.aboutOrg')}
+										{this.renderSection(profile, 'Why I chose this charity', 'description')}
+									</React.Fragment>
+								)}
+						</div>
 						<ProgressBar
 							profile={profile}
 							displaySource="custom"
 							statPosition="middle"
-							total={Math.round(
+							total={Math.trunc(
 								(profile.total + distributedGeneral) / 100
 							)}
-							goal={Math.round(profile.goal / 100)}
+							goal={Math.trunc(profile.goal / 100)}
 							showTotal={true}
 							showGoal={false}
 							style="rounded"
