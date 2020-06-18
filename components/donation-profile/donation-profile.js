@@ -52,7 +52,11 @@
 
 				let distributedGeneral = totalGeneral / profiles.length;
 				// If this isn't the newly added profile, add the distributed portion of the original total
-				if (profile.path !== 'effective-altruism') distributedGeneral += originalGeneralTotal / 3
+				if (get(this.props, 'global.campaign.path') === 'chris-birthday-wish') {
+					if (profile.path !== 'effective-altruism') distributedGeneral += originalGeneralTotal / 3;
+				} else {
+					distributedGeneral += originalGeneralTotal / profiles.length;
+				}
 
 				console.log(
 					`Calculating distributed total (${totalGeneral} - ${totalSpecific}) / ${profiles.length}`
