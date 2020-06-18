@@ -3,9 +3,9 @@
         "version": {
             "type": "number",
             "label": "Current Version of Component",
-            "value": 1
-		},
-		"profilePath": {
+            "value": 3
+        },
+        "profilePath": {
             "id": "profilePath",
             "type": "text",
             "label": "Profile Path or UUID",

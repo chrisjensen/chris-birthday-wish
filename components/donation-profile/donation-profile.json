@@ -3,7 +3,7 @@
         "version": {
             "type": "number",
             "label": "Current Version of Component",
-            "value": 9
+            "value": 27
         },
         "profilePath": {
             "id": "profilePath",
