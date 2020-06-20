@@ -69,20 +69,21 @@
 
 		donate = () => this.setState({ showDonate: true });
 
-		renderSection = (profile, heading, key) => (
-			<React.Fragment>
-				<h4>{heading}</h4>
-				<p
-					dangerouslySetInnerHTML={{
-						__html: _.get(
-							profile,
-							key,
-							""
-						)
-					}}
-				></p>
-			</React.Fragment>
-		);
+		renderSection = (profile, heading, key) => {
+			const value = _.get(profile, key);
+			if (!value) return null;
+
+			return (
+				<React.Fragment>
+					<h4>{heading}</h4>
+					<p
+						dangerouslySetInnerHTML={{
+							__html: value
+						}}
+					></p>
+				</React.Fragment>
+			);
+		}
 
 		render() {
 			const { props } = this;
