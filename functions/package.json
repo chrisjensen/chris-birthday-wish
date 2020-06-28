@@ -11,7 +11,8 @@
   "dependencies": {
     "axios": "^0.19.2",
     "lodash": "^4.17.15",
-    "nano-cache": "^1.1.2"
+    "nano-cache": "^1.1.2",
+    "web-push": "^3.4.4"
   },
   "devDependencies": {
     "chai": "^4.2.0",
