@@ -1,22 +1,22 @@
 function receivePushNotification(event) {
 	console.log("[Service Worker] Push Received.");
 
-	const { actionCount, url, tag, title } = event.data.json();
+	const { title, code } = event.data.json();
 
-	const image = 'https://raisely-images.imgix.net/cause-for-hope/uploads/yoann-boyer-i-14-h-2-xy-pr-18-unsplash-jpg-bca474.jpg';
+	const image = 'https://raisely-images.imgix.net/chris-birthday-wish/uploads/mamun-srizon-7-b-mj-9-rycb-i-unsplash-jpg-3c513f.jpg?fit=max&w=800&auto=format&q=62';
 
-	const body = title || `${actionCount} new actions are ready on Cause for Hope`;
+	const body = title || `${donor.preferredName} you've lost the lead on Chris's birthday fundraiser`;
 
 	const options = {
 		body,
 		image,
-		tag,
+		tag: code,
 		// The url to open on click
-		data: url,
+		data: '/',
 		icon: image,
 		vibrate: [100, 200, 100, 200, 100],
 		badge: image,
-		actions: [{ action: "Detail", title: "Take Action" }]
+		actions: [{ action: "Donate", title: "Donate" }]
 	};
 	event.waitUntil(self.registration.showNotification(title, options));
 }
