@@ -46,9 +46,9 @@ module.exports = async function (context, req) {
  * @returns {object} The value for the function to return
  */
 async function getCachedDonors() {
-	// Cache for 30 minutes
+	// Cache for 120 minutes
 	// (new donations will trigger a webhook that clears the the cache)
-	const ttl = 30 * 60 * 1000;
+	const ttl = 120 * 60 * 1000;
 	let results = cache.get('donors');
 
 	if (!results) {
