@@ -1,5 +1,6 @@
 ﻿const _ = require('lodash');
 const axios = require('axios');
+const webpush = require('web-push');
 
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 const RAISELY_TOKEN = process.env.RAISELY_TOKEN;
@@ -142,21 +143,30 @@ async function sendFirstPlaceEmail(context, { donation, leaderGap }) {
  * @param {integer} opts.leaderGap The gap between first and second place totals
  */
 async function sendSecondPlaceEmails(context, { donors, leaderGap }) {
+	const promises = [];
+
 	// The donor information is from a public facing function so it doesn't include emails
 	// To send them a message, we're going to need to first fetch their full record containing emails
-	const promises = donors.map(async (donor) => {
+	donors.forEach(async (donor) => {
 		const response = await axios(`${RAISELY_API}/users/${donor.uuid}?private=true`, {
 			headers: { authorization: `bearer ${RAISELY_TOKEN}` },
 		});
 		const { data: user } = response.data;
-		return sendEmail(context, {
-			donor: {
-				...donor,
-				..._.pick(user, ['email', 'preferredName', 'fullName']),
-			},
+		const donor = {
+			..._.pick(user, ['email', 'preferredName', 'fullName']),
+			...donor
+		};
+		promises.push(pushToUser(donor, {
+			leaderGap,
+			code: 'lead-lost',
+			donor,
+		}));
+
+		promises.push(sendEmail(context, {
+			donor,
 			leaderGap,
 			messageType: 'lead-lost',
-		});
+		}));
 	});
 	await Promise.all(promises);
 }
@@ -305,4 +315,17 @@ async function addClothingItem(context, donation) {
 		return true;
 	}
 	return false;
+}
+
+async function pushToUser(user, message) {
+	console.log('Pushing to user', user.uuid);
+	const pushSubscription = user.private.subscription;
+	return webpush
+		.sendNotification(
+			JSON.parse(pushSubscription),
+			JSON.stringify(message),
+		)
+		.catch(err => {
+			console.log(err);
+		});
 }
